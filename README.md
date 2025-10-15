@@ -30,19 +30,29 @@ npm run dev                     # o npm start
 - `PUT /items/:id` — **requiere JWT**, mismas validaciones (**422**)
 - `DELETE /items/:id` — **requiere JWT** (204 cuando elimina, 404 si no existe)
 
-## Despliegue en Render
-1. Subí el repo a GitHub (**no** subas `.env`).
-2. En **Render → New → Web Service** desde el repo.
-3. Configuración:
-   - **Build Command:** `npm install`
-   - **Start Command:** `node backend/index.js`
-   - **Environment Variables:** `JWT_SECRET` (y opcional `PORT`)
-4. Probar en la URL pública:
-   - `/health`
-   - `/docs`  ← **Documentación viva**
-   - Flujo completo de login + CRUD
+## Producción (Render)
 
-> Si usás `PORT` custom en Render, `/docs` seguirá funcionando porque el server lee el YAML con ruta relativa.
+•⁠  ⁠Base URL: https://ada-api-tp.onrender.com
+•⁠  ⁠Docs (Swagger UI): https://ada-api-tp.onrender.com/docs
+•⁠  ⁠Healthcheck: https://ada-api-tp.onrender.com/health
+
+### Probar rápido en prod
+```bash
+# Registrar (si hace falta)
+curl -s -X POST https://ada-api-tp.onrender.com/users/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ada@example.com","password":"123456"}' | jq
+
+# Login (obtiene token)
+TOKEN=$(curl -s -X POST https://ada-api-tp.onrender.com/users/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ada@example.com","password":"123456"}' | jq -r .token)
+
+# Crear item (autenticado)
+curl -s -X POST https://ada-api-tp.onrender.com/items \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"name":"Pedido prod","status":"pending"}' | jq
 
 ## Estructura
 ```
