@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: Trabajo Práctico Integrador - API Items
+  version: "1.0.1"
+  description: |
+    API RESTful para gestionar usuarios e items.
+    Incluye autenticación JWT y CRUD de items.
+servers:
+  - url: http://localhost:3000
+    description: Local
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error422:
+      type: object
+      properties:
+        error:
+          type: string
+          example: ValidationError
+        details:
+          type: array
+          items:
+            type: string
+    UserRegister:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: ada@example.com
+        password:
+          type: string
+          example: "123456"
+        name:
+          type: string
+          example: Ada Lovelace
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: ada@example.com
+        password:
+          type: string
+          example: "123456"
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 8c0b3e1f-0d03-4f3c-9f0e-b1d3d1111111
+        name:
+          type: string
+          example: Pedido 1
+        description:
+          type: string
+          example: Mesa 5
+        status:
+          type: string
+          example: pending
+        userId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+paths:
+  /health:
+    get:
+      summary: Comprobar salud del servicio
+      responses:
+        "200":
+          description: OK
+  /users/register:
+    post:
+      summary: Registrar usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        "201":
+          description: Registrado
+        "400":
+          description: Datos inválidos
+        "409":
+          description: Usuario ya existe
+  /users/login:
+    post:
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        "200":
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "401":
+          description: Credenciales inválidas
+  /items:
+    get:
+      summary: Listar items (búsqueda case-insensitive con ?q=)
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: texto a buscar en name/description/status (case-insensitive)
+      responses:
+        "200":
+          description: Lista de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    post:
+      summary: Crear item
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [pending, done]
+      responses:
+        "201":
+          description: Creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        "400":
+          description: Body inválido
+        "401":
+          description: Token requerido/inválido
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error422'
+  /items/{id}:
+    put:
+      summary: Editar item
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                status: { type: string, enum: [pending, done] }
+      responses:
+        "200":
+          description: Actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        "401":
+          description: Token requerido/inválido
+        "404":
+          description: No encontrado
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error422'
+    delete:
+      summary: Eliminar item
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Eliminado
+        "401":
+          description: Token requerido/inválido
+        "404":
+          description: No encontrado

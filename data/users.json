@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": "68069140-1ec3-4bfa-bc4c-6df05351bc50",
+      "email": "ada@example.com",
+      "passwordHash": "$2a$10$rM61VeO/v00P.VGf7pdo..XvgFA0GZp8HI3tVH7CU/exD.1PZAr5.",
+      "name": "",
+      "createdAt": "2025-10-14T23:13:49.708Z"
+    },
+    {
+      "id": "17fda59b-d211-4887-94ee-0459416959df",
+      "email": "candealfonso7@gmail.com",
+      "passwordHash": "$2a$10$XVhplO3GQIZGOT1.Y1/kgeqB7A05xwPOUYU3Fy56ZZAbSMQQC2QcG",
+      "name": "",
+      "createdAt": "2025-10-15T00:31:24.718Z"
+    }
+  ]
+}

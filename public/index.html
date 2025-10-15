@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo TPI - API Items</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif; margin: 2rem; }
+    input, button { padding: .5rem; margin: .25rem 0; }
+    .card { border: 1px solid #ddd; padding: 1rem; border-radius: .5rem; margin-bottom: .75rem; }
+    .row { display: flex; gap: 1rem; align-items: center; }
+  </style>
+</head>
+<body>
+  <h1>Demo Frontend (Opcional)</h1>
+  <p>Este frontend estático sirve para probar la API.</p>
+
+  <section class="card">
+    <h2>Autenticación</h2>
+    <div>
+      <h3>Registro</h3>
+      <input id="regEmail" placeholder="email" />
+      <input id="regPass" placeholder="password" type="password" />
+      <button onclick="register()">Registrarme</button>
+    </div>
+    <div>
+      <h3>Login</h3>
+      <input id="logEmail" placeholder="email" />
+      <input id="logPass" placeholder="password" type="password" />
+      <button onclick="login()">Login</button>
+    </div>
+    <p><strong>Token:</strong> <span id="token"></span></p>
+  </section>
+
+  <section class="card">
+    <h2>Items</h2>
+    <div class="row">
+      <input id="q" placeholder="buscar (case-insensitive)" />
+      <button onclick="loadItems()">Buscar</button>
+    </div>
+    <div>
+      <input id="name" placeholder="nombre" />
+      <input id="description" placeholder="descripción" />
+      <input id="status" placeholder="estado (pending/done)" value="pending" />
+      <button onclick="createItem()">Crear (requiere token)</button>
+    </div>
+    <div id="items"></div>
+  </section>
+
+  <script>
+    const base = '';
+    let authToken = '';
+
+    async function register() {
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPass').value;
+      const res = await fetch(base + '/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      alert(JSON.stringify(data));
+    }
+
+    async function login() {
+      const email = document.getElementById('logEmail').value;
+      const password = document.getElementById('logPass').value;
+      const res = await fetch(base + '/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        authToken = data.token;
+        document.getElementById('token').textContent = data.token.slice(0, 24) + '...';
+      }
+      alert(JSON.stringify(data));
+    }
+
+    async function loadItems() {
+      const q = document.getElementById('q').value;
+      const res = await fetch(base + '/items' + (q ? ('?q=' + encodeURIComponent(q)) : ''));
+      const items = await res.json();
+      const container = document.getElementById('items');
+      container.innerHTML = '';
+      items.forEach(i => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = '<strong>' + i.name + '</strong><br/>' +
+                       '<em>' + (i.status || '') + '</em><br/>' +
+                       (i.description || '') + '<br/>' +
+                       '<button onclick="delItem(\'' + i.id + '\')">Eliminar</button>';
+        container.appendChild(el);
+      });
+    }
+
+    async function createItem() {
+      const name = document.getElementById('name').value;
+      const description = document.getElementById('description').value;
+      const status = document.getElementById('status').value;
+      const res = await fetch(base + '/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {})
+        },
+        body: JSON.stringify({ name, description, status })
+      });
+      const data = await res.json();
+      alert(JSON.stringify(data));
+      loadItems();
+    }
+
+    async function delItem(id) {
+      const res = await fetch(base + '/items/' + id, {
+        method: 'DELETE',
+        headers: { ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {}) }
+      });
+      if (res.status === 204) {
+        alert('Eliminado');
+        loadItems();
+      } else {
+        alert(await res.text());
+      }
+    }
+
+    loadItems();
+  </script>
+</body>
+</html>
