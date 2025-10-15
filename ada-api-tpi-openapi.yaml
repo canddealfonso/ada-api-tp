@@ -6,6 +6,8 @@ info:
     API RESTful para gestionar usuarios e items.
     Incluye autenticación JWT y CRUD de items.
 servers:
+  - url: https://ada-api-tp.onrender.com
+    description: Render
   - url: http://localhost:3000
     description: Local
 components:
